@@ -1,0 +1,104 @@
+##****--Auto-Scaling --****##
+
+**-- create s3 bucket 
+-- name it = "auto-bucket11"
+-- grant public read permission
+-- upload given bluebills file
+-- grant punlic read permission
+
+
+**-- crate IAM role for s3 access
+> create IAM role and name it = "s3role"
+> provide s3 AdmistrativeAccess 
+
+
+ ----Go to EC2 for following----
+ 
+**-- Create LoadBalancer
+> name it = "autobalancer"
+> security groups = ssh , http.
+ 
+**-- Auto-Scaling Groups
+ -- crate launch configuration 
+> select AMI 
+> Configure details ->
+   -> name it = "mylaunch" 
+   -> select IAM role - s3role
+   -> advance details --> 
+   -->copy & paste bootstrap script for s3 access 
+   -->put your bucket name in that script = "auto-bucket11"
+> security group - ssh, http
+
+ -- create auto-scaling group 
+> group name = "autogroup"
+> group size = 3 (select whatever you want) ii wil initially  start 3 instances
+> subnet = 3 (select how many you want)
+>advanced details ->
+  -> load balancing = autobalancer (loadbalancer that we have created) 
+  -> health check type = ELB (using loadbalncer, if not then EC2) 
+  -> greace period = 150 sec (can change it)
+
+
+
+   ----  types of auto-scaling 
+ 1) keep this gorup at it's intial size
+ 2) use scaling policy for adjust the capacity of this group
+
+ 1) keep this group at it's intial size -->
+ > add notification ->
+ -> send notification - name it - "teamAdmin"
+ -> with this recipient - enter mail_id
+ -> whenever instances - select when you want notification
+
+> enter on create group and group is created 
+ 
+> to check --> go to instances & check instace workinf using public ip
+           --> check loadbalancer using public DNS 
+           --> terminate any instance & check whether it will create instance automatically 
+               to maintane always 3 instances
+
+ 2) Use scaling policy for adjust the capacity of this group 
+ > select existing launch configuration - mylaunch     
+ > create auto-scaling group >
+  > group name = "autogroup2"
+  > group size = 3 (initially we want 3 instances)
+  > subnet - select all for this case
+  > advance details -->
+   --> loadbalancer = autobalancer
+   --> health check = ELB
+   --> grace period = 150 sec
+  > scale between 3 to 6 (for this case you can select diffrent)
+  > click on 'Scale the Auto Scaling group using a target tracking scaling policy'--
+    
+   ---inscrese group size ->  
+    -> add new alarm - (all configuration for this case)
+      - Send a notification to: select recipient for notification
+      - whenever - Avarage - of - networkIn 
+      - is >= 10 Bytes
+      - for at least - 1 - consecutive period(s) of - 1 minutes
+      - name it 
+      - click on create alarm 
+    -> take action - 
+      - add - 1 - instance -when - 1o byte 
+   
+    ---decrease group size ->
+    -> add new alarm - 
+      - send notification : select
+      - whenever - Avarage - of - cpuUtilization
+      - is <= 10 percent
+      - for at least - 1 - consecutive period(s) of - 1 hours
+      - name it 
+      - click on create alarm 
+     -> take action -
+       - remove - 1 - instance - when - 10 percent
+     
+   > click on configure notification
+   > add notification - select recipient 
+   > create tag - if needed
+   > click on create group & it done 
+
+>> to check working 
+>> open terminal copy & paste public ip of any instance and connect to it 
+>> paste - wget http://speedtest.ftp.otenet.gr/files/test1Gb.db 
+>> press enter and check new instace is creating or not ... if yes it works ....
+
