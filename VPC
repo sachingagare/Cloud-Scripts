@@ -1,0 +1,130 @@
+##****--Virtul Private Cloud (VPC)--****##
+ 
+ ---- VPC with Public and Private subnet ----
+
+# Go to Service >
+> Network and content.....->
+ -> VPC -> create vpc 
+
+**-- Create vpc 
+> name it : "newvpc" (give any name you want)
+> IPv4 CIDR block : 10.0.0.0/16
+> Tenancy : default
+> click on create 
+
+**-- Create Subnet (public and private)
+ 
+-- Public subnet > create subnet ->
+ -> Name tag : "public-us-east-1a" (give any name you want)
+ -> vpc : "newvpc" (vpc that you created)
+ -> Availability zone : us-east-1a (select which you want, but different for each subnet)
+ -> IPv4 CIDR block : 10.0.1.0/24 
+ -> click on create 
+ -> go to action
+ -> modifie auto-asign ip setting : enable it by selecting check box
+ -> save 
+
+-- Private subnet > create subnet->
+ -> name tag : "private-us-east-1b"
+ -> vpc : "newvpc"
+ -> Availability zone : us-east-1b
+ -> IPv4 CIDR block : 10.0.2.0/24
+ -> click on create
+
+**-- Create Internet Gateway ->
+ -> name tag : "myigw" (any you want)
+ -> click on create
+ -> select "myigw" and click on action 
+ -> attach to vpc 
+ -> select "newvpc" and attach
+
+
+**-- Create route table 
+ -> name tag : "mypublicroute" (give any you want)
+ -> vpc : newvpc
+ -> click on create
+ -> go to routes -> edits 
+ -> add another route 
+ ->in that put ip : 0.0.0.0/0 - select internet gateway that you crated : "myigw"
+ -> go to subnet association -> edits
+ -> select subnet : "public-us-east-1a" and save 
+
+
+**-- Launch EC2 instance from this vpc for public subnet
+ -> launch instance
+ -> select AMI : ubuntu 16.4 (for this case ) 
+ -> select istance type : t2.micro (free tier)
+ -> configure instance details : -->
+    --> network : "newvpc"
+    --> subnet : "public-us-east-1a"
+    --> advace details ->> copy and paste bellow code in box to run as webserver
+       
+           #!/bin/bash
+           sudo su
+           apt-get update -y
+           apt install apache2 -y
+           service apache2 start
+     
+ -> add tag : webserver
+ -> configure sequrity group : ssh, http = anywhere
+ -> launch instance
+
+**-- To check working 
+ -> copy public ip and paste in browser 
+ -> check whether apache server started or no 
+ -> if started then all done and it's work .....
+
+
+
+**-- For Private Subnet
+ 
+ -- create NAT Gateway ->
+  -> subnet : "public-us-east-1a" (select public subnet ID)
+  -> Create new elastic ip and allocate it to NAT Gateway
+  -> click on create 
+  -> click on edit route tables --> 
+   --> select main route table of vpc
+   --> go to routes 
+   --> edits 
+   --> add another route
+   --> put ip : 0.0.0.0/0 - select nat gateway
+   --> save
+ 
+
+**-- Go to EC2 and launch instance
+ -> launch instace
+ -> configure instances -->
+   --> network : "newvpc"
+   --> subnet : "private-us-east-1b" (select your private subnet)
+ -> tag : "sqlserver"
+ -> configure sequrity groups -->
+   --> ssh - custom - 10.0.1.0/24 
+   --> mySQL/Aurora - custom - 10.0.1.0/24 (for sqlserver)
+   --> all ICMP IPv4 - custom - 10.0.1.0/24 (to check connection using 'ping')
+ -> launch instance
+
+
+**-- go and open terminal
+ -> scp -i mango.pem mango.pem ubuntu@(public ip of webserver ):~
+   (put your key name instead of mango.pem)
+ -> connect to terminal -->
+  --> ssh -i mango.pem ubuntu@54.26.05.223(public ip of webserver)
+  --> ls (to check whether key successfully copied for not )
+  --> sudo apt-get update ( to update)
+  --> ping -c 5 "private ip of sqlserver" (to check connection)
+  --> ssh -i mango.pem ubuntu@10.0.2.15(private ip of sqlserver) ......to connect private subnet
+  --> sudo apt install mysql-server -y (to install mysql server)   
+  --> enter password for mysql server : root 
+  --> re-enter the sane : root 
+  --> sudo service mysql status   (to check mysql properly install or not)
+
+
+
+
+
+
+
+
+
+  
+ 
