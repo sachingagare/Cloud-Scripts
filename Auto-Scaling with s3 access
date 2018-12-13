@@ -3,7 +3,7 @@
 **-- create s3 bucket 
 -- name it = "auto-bucket11"
 -- grant public read permission
--- upload given webs3 file 
+-- upload given "webs3" files (download and extract then upload to s3)
 -- grant punlic read permission
 
 
@@ -31,7 +31,7 @@
 
  -- create auto-scaling group 
 > group name = "autogroup"
-> group size = 3 (select whatever you want) ii wil initially  start 3 instances
+> group size = 3 (select whatever you want) we will initially  start 3 instances
 > subnet = 3 (select how many you want)
 >advanced details ->
   -> load balancing = autobalancer (loadbalancer that we have created) 
