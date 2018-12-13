@@ -3,7 +3,7 @@
 **-- create s3 bucket 
 -- name it = "auto-bucket11"
 -- grant public read permission
--- upload given bluebills file
+-- upload given webs3 file 
 -- grant punlic read permission
 
 
@@ -25,7 +25,7 @@
    -> name it = "mylaunch" 
    -> select IAM role - s3role
    -> advance details --> 
-   -->copy & paste bootstrap script for s3 access 
+   -->copy & paste "bootstrap script for s3 access" given in "Cloud-Scripts"
    -->put your bucket name in that script = "auto-bucket11"
 > security group - ssh, http
 
